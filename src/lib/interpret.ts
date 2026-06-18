@@ -3,8 +3,9 @@ import Anthropic from '@anthropic-ai/sdk'
 export type ItemOp = { descripcion: string; cantidad: number; precio_unitario: number }
 
 export type Operacion = {
-  tipo: 'pedido' | 'pago' | 'consulta_morosos' | 'consulta_saldo' | 'desconocido'
+  tipo: 'pedido' | 'pago' | 'cliente' | 'consulta_morosos' | 'consulta_saldo' | 'desconocido'
   cliente_nombre?: string
+  telefono?: string
   fecha?: string
   items?: ItemOp[]
   monto?: number
@@ -26,11 +27,12 @@ const tool: Anthropic.Tool = {
     properties: {
       tipo: {
         type: 'string',
-        enum: ['pedido', 'pago', 'consulta_morosos', 'consulta_saldo', 'desconocido'],
+        enum: ['pedido', 'pago', 'cliente', 'consulta_morosos', 'consulta_saldo', 'desconocido'],
         description:
-          'pedido = carga una venta; pago = registra una cobranza; consulta_morosos = quién debe; consulta_saldo = saldo de un cliente; desconocido = no se entiende.',
+          'pedido = carga una venta; pago = registra una cobranza; cliente = alta de un cliente nuevo; consulta_morosos = quién debe; consulta_saldo = saldo de un cliente; desconocido = no se entiende.',
       },
       cliente_nombre: { type: 'string', description: 'Nombre del cliente mencionado.' },
+      telefono: { type: 'string', description: 'Teléfono del cliente (para alta de cliente).' },
       fecha: { type: 'string', description: 'Fecha YYYY-MM-DD. Si no se menciona, usar hoy.' },
       items: {
         type: 'array',
@@ -68,6 +70,7 @@ Reglas:
 - Mapeá cada presentación (gramaje) al precio del catálogo. Si el mensaje no aclara precio, usá el del catálogo.
 - Montos: "500 mil" = 500000, "1.680.000" = 1680000 (el punto separa miles).
 - Si no se menciona fecha, usá hoy (${ctx.hoy}).
+- "nuevo cliente X", "agregar cliente X", "dar de alta a X tel 11..." => tipo=cliente (extraé nombre y, si está, teléfono).
 - "quién debe", "morosos", "deudores" => consulta_morosos.
 - "cuánto debe X", "saldo de X" => consulta_saldo.
 - Si no entendés, tipo=desconocido.

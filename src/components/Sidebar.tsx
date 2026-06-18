@@ -1,27 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { usePathname } from 'next/navigation'
 
 const NAV = [
-  { href: '/', label: 'Morosos', icon: '⚠️' },
+  { href: '/', label: 'Inicio', icon: '🏠' },
   { href: '/pedidos', label: 'Pedidos', icon: '📋' },
   { href: '/clientes', label: 'Clientes', icon: '👤' },
   { href: '/productos', label: 'Productos', icon: '🍃' },
   { href: '/reportes', label: 'Reportes', icon: '📊' },
 ]
 
-export function Sidebar({ email }: { email: string | null }) {
+export function Sidebar() {
   const pathname = usePathname()
-  const router = useRouter()
-
-  async function logout() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.replace('/login')
-    router.refresh()
-  }
 
   function isActive(href: string) {
     if (href === '/') return pathname === '/'
@@ -50,14 +41,8 @@ export function Sidebar({ email }: { email: string | null }) {
           </Link>
         ))}
       </nav>
-      <div className="border-t border-slate-200 px-3 py-3">
-        <p className="truncate px-3 pb-2 text-xs text-slate-400">{email}</p>
-        <button
-          onClick={logout}
-          className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-100"
-        >
-          Cerrar sesión
-        </button>
+      <div className="border-t border-slate-200 px-5 py-4">
+        <p className="text-xs text-slate-400">Sistema Samir</p>
       </div>
     </aside>
   )

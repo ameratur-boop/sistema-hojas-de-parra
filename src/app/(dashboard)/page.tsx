@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import type { Cliente, ResumenCliente } from '@/lib/types'
 import { MorososView } from './MorososView'
+import { QuickAdd } from '@/components/QuickAdd'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,10 +21,13 @@ export default async function MorososPage() {
   const totalAdeudado = morosos.reduce((s, m) => s + Number(m.saldo), 0)
 
   return (
-    <MorososView
-      morosos={morosos}
-      totalAdeudado={totalAdeudado}
-      clientes={(clientes as Cliente[]) ?? []}
-    />
+    <div className="space-y-6">
+      <QuickAdd />
+      <MorososView
+        morosos={morosos}
+        totalAdeudado={totalAdeudado}
+        clientes={(clientes as Cliente[]) ?? []}
+      />
+    </div>
   )
 }

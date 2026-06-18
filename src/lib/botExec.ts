@@ -35,11 +35,26 @@ export async function resumenOperacion(admin: Admin, op: Operacion): Promise<str
   if (op.tipo === 'pago') {
     return `💵 <b>Pago</b> — ${nombre}${nuevo}\nFecha: ${formatDate(op.fecha ?? hoy())}\nMonto: <b>${formatMoney(op.monto ?? 0)}</b>${op.metodo ? `\nMétodo: ${op.metodo}` : ''}\n\n¿Confirmar?`
   }
+  if (op.tipo === 'cliente') {
+    return `👤 <b>Nuevo cliente</b>\nNombre: ${op.cliente_nombre ?? '—'}${op.telefono ? `\nTeléfono: ${op.telefono}` : ''}\n\n¿Confirmar?`
+  }
   return 'No entendí la operación.'
 }
 
 // Ejecuta la operación ya confirmada
 export async function aplicarOperacion(admin: Admin, op: Operacion): Promise<string> {
+  // Alta de cliente
+  if (op.tipo === 'cliente') {
+    if (!op.cliente_nombre) return '❌ Falta el nombre del cliente.'
+    const existente = await buscarCliente(admin, op.cliente_nombre)
+    if (existente) return `ℹ️ El cliente <b>${existente.nombre}</b> ya existe.`
+    const { error } = await admin
+      .from('clientes')
+      .insert({ nombre: op.cliente_nombre.trim(), telefono: op.telefono ?? null })
+    if (error) return `❌ Error: ${error.message}`
+    return `✅ Cliente <b>${op.cliente_nombre.trim()}</b> creado.`
+  }
+
   let cli = await buscarCliente(admin, op.cliente_nombre)
 
   if (!cli && op.cliente_nombre) {

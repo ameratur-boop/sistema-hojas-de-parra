@@ -141,7 +141,12 @@ export async function POST(req: NextRequest) {
     await sendMessage(chatId, await consultarSaldo(admin, op.cliente_nombre))
     return NextResponse.json({ ok: true })
   }
-  if (op.tipo === 'desconocido' || (op.tipo === 'pedido' && !op.items?.length) || (op.tipo === 'pago' && !op.monto)) {
+  if (
+    op.tipo === 'desconocido' ||
+    (op.tipo === 'pedido' && !op.items?.length) ||
+    (op.tipo === 'pago' && !op.monto) ||
+    (op.tipo === 'cliente' && !op.cliente_nombre)
+  ) {
     await sendMessage(chatId, `No te entendí 🤔\n\n${AYUDA}`)
     return NextResponse.json({ ok: true })
   }
