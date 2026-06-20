@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { Cliente, ResumenCliente } from '@/lib/types'
 import { MorososView } from './MorososView'
 import { QuickAdd } from '@/components/QuickAdd'
+import { NuevoClienteRapido } from '@/components/NuevoClienteRapido'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,6 +23,10 @@ export default async function MorososPage() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-slate-100">Inicio</h1>
+        <NuevoClienteRapido />
+      </div>
       <QuickAdd />
       <MorososView
         morosos={morosos}

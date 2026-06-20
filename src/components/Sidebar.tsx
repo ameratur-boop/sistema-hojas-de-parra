@@ -20,10 +20,10 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="flex w-56 shrink-0 flex-col border-r border-slate-200 bg-white">
+    <aside className="flex w-56 shrink-0 flex-col border-r border-slate-700 bg-slate-800">
       <div className="px-5 py-5">
-        <p className="text-lg font-bold text-slate-800">Samir</p>
-        <p className="text-xs text-slate-400">Hojas de parra</p>
+        <p className="text-lg font-bold text-slate-100">Baladi</p>
+        <p className="text-xs text-slate-500">Hojas de parra</p>
       </div>
       <nav className="flex-1 space-y-1 px-3">
         {NAV.map((item) => (
@@ -32,8 +32,8 @@ export function Sidebar() {
             href={item.href}
             className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
               isActive(item.href)
-                ? 'bg-emerald-50 text-emerald-700'
-                : 'text-slate-600 hover:bg-slate-100'
+                ? 'bg-emerald-500/10 text-emerald-400'
+                : 'text-slate-300 hover:bg-slate-700'
             }`}
           >
             <span>{item.icon}</span>
@@ -41,8 +41,8 @@ export function Sidebar() {
           </Link>
         ))}
       </nav>
-      <div className="border-t border-slate-200 px-5 py-4">
-        <p className="text-xs text-slate-400">Sistema Samir</p>
+      <div className="border-t border-slate-700 px-5 py-4">
+        <p className="text-xs text-slate-500">Sistema Baladi</p>
       </div>
     </aside>
   )

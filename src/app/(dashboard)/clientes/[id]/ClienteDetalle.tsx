@@ -58,8 +58,8 @@ export function ClienteDetalle({
     <>
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-800">{cliente.nombre}</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-xl font-bold text-slate-100">{cliente.nombre}</h1>
+          <p className="text-sm text-slate-400">
             {[cliente.telefono, cliente.email].filter(Boolean).join(' · ') || 'Sin contacto'}
           </p>
         </div>
@@ -74,27 +74,27 @@ export function ClienteDetalle({
       <div className="mb-6 grid grid-cols-3 gap-4">
         <Card>
           <CardBody className="pt-5">
-            <p className="text-sm text-slate-500">Total pedidos</p>
-            <p className="text-xl font-bold text-slate-800">{formatMoney(resumen?.total_pedidos)}</p>
+            <p className="text-sm text-slate-400">Total pedidos</p>
+            <p className="text-xl font-bold text-slate-100">{formatMoney(resumen?.total_pedidos)}</p>
           </CardBody>
         </Card>
         <Card>
           <CardBody className="pt-5">
-            <p className="text-sm text-slate-500">Pagado</p>
-            <p className="text-xl font-bold text-emerald-600">{formatMoney(resumen?.total_pagado)}</p>
+            <p className="text-sm text-slate-400">Pagado</p>
+            <p className="text-xl font-bold text-emerald-400">{formatMoney(resumen?.total_pagado)}</p>
           </CardBody>
         </Card>
         <Card>
           <CardBody className="pt-5">
-            <p className="text-sm text-slate-500">Saldo</p>
-            <p className={`text-xl font-bold ${saldo > 0 ? 'text-red-600' : 'text-slate-800'}`}>
+            <p className="text-sm text-slate-400">Saldo</p>
+            <p className={`text-xl font-bold ${saldo > 0 ? 'text-red-400' : 'text-slate-100'}`}>
               {formatMoney(saldo)}
             </p>
           </CardBody>
         </Card>
       </div>
 
-      <h2 className="mb-2 text-sm font-semibold text-slate-600">Pedidos</h2>
+      <h2 className="mb-2 text-sm font-semibold text-slate-300">Pedidos</h2>
       {pedidos.length === 0 ? (
         <EmptyState>Sin pedidos.</EmptyState>
       ) : (
@@ -104,11 +104,11 @@ export function ClienteDetalle({
               <CardBody className="flex items-start justify-between pt-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-700">{formatDate(p.fecha)}</span>
+                    <span className="text-sm font-medium text-slate-200">{formatDate(p.fecha)}</span>
                     {p.created_via === 'telegram' && <Badge color="slate">Telegram</Badge>}
-                    {p.envio && <span className="text-xs text-slate-400">· {p.envio}</span>}
+                    {p.envio && <span className="text-xs text-slate-500">· {p.envio}</span>}
                   </div>
-                  <ul className="mt-1 text-sm text-slate-600">
+                  <ul className="mt-1 text-sm text-slate-300">
                     {p.pedido_items.map((it) => (
                       <li key={it.id}>
                         {it.cantidad} × {it.descripcion} × {formatMoney(it.precio_unitario)} ={' '}
@@ -118,10 +118,10 @@ export function ClienteDetalle({
                   </ul>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-slate-800">{formatMoney(p.total)}</p>
+                  <p className="font-bold text-slate-100">{formatMoney(p.total)}</p>
                   <button
                     onClick={() => borrarPedido(p.id)}
-                    className="text-xs text-slate-400 hover:text-red-600"
+                    className="text-xs text-slate-500 hover:text-red-600"
                   >
                     Eliminar
                   </button>
@@ -132,24 +132,24 @@ export function ClienteDetalle({
         </div>
       )}
 
-      <h2 className="mb-2 text-sm font-semibold text-slate-600">Pagos</h2>
+      <h2 className="mb-2 text-sm font-semibold text-slate-300">Pagos</h2>
       {pagos.length === 0 ? (
         <EmptyState>Sin pagos registrados.</EmptyState>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-800">
           <table className="w-full text-sm">
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-700/60">
               {pagos.map((pg) => (
-                <tr key={pg.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 text-slate-600">{formatDate(pg.fecha)}</td>
-                  <td className="px-4 py-3 text-slate-500">{pg.metodo ?? '—'}</td>
-                  <td className="px-4 py-3 text-right font-medium text-emerald-700">
+                <tr key={pg.id} className="hover:bg-slate-700/40">
+                  <td className="px-4 py-3 text-slate-300">{formatDate(pg.fecha)}</td>
+                  <td className="px-4 py-3 text-slate-400">{pg.metodo ?? '—'}</td>
+                  <td className="px-4 py-3 text-right font-medium text-emerald-400">
                     {formatMoney(pg.monto)}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => borrarPago(pg.id)}
-                      className="text-xs text-slate-400 hover:text-red-600"
+                      className="text-xs text-slate-500 hover:text-red-600"
                     >
                       Eliminar
                     </button>

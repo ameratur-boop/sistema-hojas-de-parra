@@ -9,7 +9,7 @@ const geistSans = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Sistema Samir",
+  title: "Sistema Baladi",
   description: "Gestión de pedidos, pagos y morosos — hojas de parra",
 };
 
@@ -19,8 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
-      <body className={`${geistSans.variable} antialiased bg-slate-50 text-slate-900`}>
+    <html lang="es" className="dark">
+      <body className={`${geistSans.variable} antialiased bg-slate-950 text-slate-100`}>
         {children}
       </body>
     </html>

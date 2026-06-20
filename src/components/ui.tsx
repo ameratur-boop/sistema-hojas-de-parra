@@ -5,7 +5,7 @@ type DivProps = React.HTMLAttributes<HTMLDivElement>
 export function Card({ className = '', ...props }: DivProps) {
   return (
     <div
-      className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}
+      className={`rounded-xl border border-slate-700 bg-slate-800 shadow-sm ${className}`}
       {...props}
     />
   )
@@ -16,7 +16,7 @@ export function CardHeader({ className = '', ...props }: DivProps) {
 }
 
 export function CardTitle({ className = '', ...props }: DivProps) {
-  return <h2 className={`text-base font-semibold text-slate-800 ${className}`} {...props} />
+  return <h2 className={`text-base font-semibold text-slate-100 ${className}`} {...props} />
 }
 
 export function CardBody({ className = '', ...props }: DivProps) {
@@ -24,10 +24,10 @@ export function CardBody({ className = '', ...props }: DivProps) {
 }
 
 const btnVariants: Record<string, string> = {
-  primary: 'bg-emerald-600 text-white hover:bg-emerald-700',
-  secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200',
-  danger: 'bg-red-600 text-white hover:bg-red-700',
-  ghost: 'text-slate-600 hover:bg-slate-100',
+  primary: 'bg-emerald-600 text-white hover:bg-emerald-500',
+  secondary: 'bg-slate-700 text-slate-200 hover:bg-slate-600',
+  danger: 'bg-red-600 text-white hover:bg-red-500',
+  ghost: 'text-slate-300 hover:bg-slate-700',
 }
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -45,13 +45,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 )
 Button.displayName = 'Button'
 
+const fieldBase =
+  'w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+
 export const Input = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   ({ className = '', ...props }, ref) => (
-    <input
-      ref={ref}
-      className={`w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 ${className}`}
-      {...props}
-    />
+    <input ref={ref} className={`${fieldBase} ${className}`} {...props} />
   ),
 )
 Input.displayName = 'Input'
@@ -60,11 +59,7 @@ export const Textarea = forwardRef<
   HTMLTextAreaElement,
   React.TextareaHTMLAttributes<HTMLTextAreaElement>
 >(({ className = '', ...props }, ref) => (
-  <textarea
-    ref={ref}
-    className={`w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 ${className}`}
-    {...props}
-  />
+  <textarea ref={ref} className={`${fieldBase} ${className}`} {...props} />
 ))
 Textarea.displayName = 'Textarea'
 
@@ -72,17 +67,13 @@ export const Select = forwardRef<
   HTMLSelectElement,
   React.SelectHTMLAttributes<HTMLSelectElement>
 >(({ className = '', ...props }, ref) => (
-  <select
-    ref={ref}
-    className={`w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 ${className}`}
-    {...props}
-  />
+  <select ref={ref} className={`${fieldBase} ${className}`} {...props} />
 ))
 Select.displayName = 'Select'
 
 export function Label({ className = '', ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {
   return (
-    <label className={`mb-1 block text-sm font-medium text-slate-600 ${className}`} {...props} />
+    <label className={`mb-1 block text-sm font-medium text-slate-300 ${className}`} {...props} />
   )
 }
 
@@ -94,10 +85,10 @@ export function Badge({
   color?: 'slate' | 'red' | 'green' | 'amber'
 }) {
   const colors = {
-    slate: 'bg-slate-100 text-slate-700',
-    red: 'bg-red-100 text-red-700',
-    green: 'bg-emerald-100 text-emerald-700',
-    amber: 'bg-amber-100 text-amber-700',
+    slate: 'bg-slate-700 text-slate-200',
+    red: 'bg-red-500/15 text-red-300',
+    green: 'bg-emerald-500/15 text-emerald-300',
+    amber: 'bg-amber-500/15 text-amber-300',
   }
   return (
     <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${colors[color]}`}>
@@ -108,7 +99,7 @@ export function Badge({
 
 export function EmptyState({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center text-sm text-slate-500">
+    <div className="rounded-xl border border-dashed border-slate-600 bg-slate-800 px-6 py-12 text-center text-sm text-slate-400">
       {children}
     </div>
   )

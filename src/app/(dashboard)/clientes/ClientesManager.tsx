@@ -67,41 +67,41 @@ export function ClientesManager({ clientes }: { clientes: Cliente[] }) {
   return (
     <>
       <div className="mb-5 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-800">Clientes</h1>
+        <h1 className="text-xl font-bold text-slate-100">Clientes</h1>
         <Button onClick={abrirNuevo}>+ Nuevo cliente</Button>
       </div>
 
       {clientes.length === 0 ? (
         <EmptyState>Todavía no hay clientes. Creá el primero.</EmptyState>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-800">
           <table className="w-full text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-left text-slate-500">
+            <thead className="border-b border-slate-700 bg-slate-900 text-left text-slate-400">
               <tr>
                 <th className="px-4 py-3 font-medium">Nombre</th>
                 <th className="px-4 py-3 font-medium">Teléfono</th>
                 <th className="px-4 py-3 font-medium"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-700/60">
               {clientes.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-800">
-                    <Link href={`/clientes/${c.id}`} className="hover:text-emerald-700">
+                <tr key={c.id} className="hover:bg-slate-700/40">
+                  <td className="px-4 py-3 font-medium text-slate-100">
+                    <Link href={`/clientes/${c.id}`} className="hover:text-emerald-400">
                       {c.nombre}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-slate-600">{c.telefono ?? '—'}</td>
+                  <td className="px-4 py-3 text-slate-300">{c.telefono ?? '—'}</td>
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => abrirEditar(c)}
-                      className="mr-3 text-slate-500 hover:text-emerald-700"
+                      className="mr-3 text-slate-400 hover:text-emerald-400"
                     >
                       Editar
                     </button>
                     <button
                       onClick={() => borrar(c)}
-                      className="text-slate-500 hover:text-red-600"
+                      className="text-slate-400 hover:text-red-600"
                     >
                       Eliminar
                     </button>
@@ -137,7 +137,7 @@ export function ClientesManager({ clientes }: { clientes: Cliente[] }) {
             <Label>Notas</Label>
             <Textarea rows={2} value={form.notas} onChange={(e) => setForm({ ...form, notas: e.target.value })} />
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-400">{error}</p>}
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               Cancelar

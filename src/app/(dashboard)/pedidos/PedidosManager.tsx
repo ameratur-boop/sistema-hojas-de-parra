@@ -46,7 +46,7 @@ export function PedidosManager({
   return (
     <>
       <div className="mb-5 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-800">Pedidos</h1>
+        <h1 className="text-xl font-bold text-slate-100">Pedidos</h1>
         <div className="flex gap-2">
           <Button variant="secondary" onClick={() => setModal('pago')}>
             Registrar pago
@@ -58,9 +58,9 @@ export function PedidosManager({
       {pedidos.length === 0 ? (
         <EmptyState>Todavía no hay pedidos cargados.</EmptyState>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-800">
           <table className="w-full text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-left text-slate-500">
+            <thead className="border-b border-slate-700 bg-slate-900 text-left text-slate-400">
               <tr>
                 <th className="px-4 py-3 font-medium">Fecha</th>
                 <th className="px-4 py-3 font-medium">Cliente</th>
@@ -69,12 +69,12 @@ export function PedidosManager({
                 <th className="px-4 py-3 font-medium"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-700/60">
               {pedidos.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 text-slate-600">{formatDate(p.fecha)}</td>
-                  <td className="px-4 py-3 font-medium text-slate-800">
-                    <Link href={`/clientes/${p.cliente_id}`} className="hover:text-emerald-700">
+                <tr key={p.id} className="hover:bg-slate-700/40">
+                  <td className="px-4 py-3 text-slate-300">{formatDate(p.fecha)}</td>
+                  <td className="px-4 py-3 font-medium text-slate-100">
+                    <Link href={`/clientes/${p.cliente_id}`} className="hover:text-emerald-400">
                       {p.clientes?.nombre ?? '—'}
                     </Link>
                     {p.created_via === 'telegram' && (
@@ -83,10 +83,10 @@ export function PedidosManager({
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-slate-500">{p.envio ?? '—'}</td>
+                  <td className="px-4 py-3 text-slate-400">{p.envio ?? '—'}</td>
                   <td className="px-4 py-3 text-right font-medium">{formatMoney(p.total)}</td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => borrar(p)} className="text-slate-500 hover:text-red-600">
+                    <button onClick={() => borrar(p)} className="text-slate-400 hover:text-red-600">
                       Eliminar
                     </button>
                   </td>

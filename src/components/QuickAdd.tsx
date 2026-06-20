@@ -52,11 +52,11 @@ export function QuickAdd() {
   }
 
   return (
-    <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+    <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4">
       <div className="mb-2 flex items-center gap-2">
         <span className="text-lg">⚡</span>
-        <h2 className="text-sm font-semibold text-slate-700">Carga rápida</h2>
-        <span className="text-xs text-slate-400">escribí en lenguaje normal</span>
+        <h2 className="text-sm font-semibold text-slate-200">Carga rápida</h2>
+        <span className="text-xs text-slate-500">escribí en lenguaje normal</span>
       </div>
 
       <form onSubmit={enviar} className="flex gap-2">
@@ -64,7 +64,7 @@ export function QuickAdd() {
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
           placeholder='Ej: "Agrimpay pagó 500 mil"'
-          className="bg-white"
+          className="bg-slate-800"
         />
         <Button type="submit" disabled={pending || !texto.trim()}>
           {pending ? '…' : 'Enviar'}
@@ -77,24 +77,24 @@ export function QuickAdd() {
             key={ej}
             type="button"
             onClick={() => setTexto(ej)}
-            className="rounded-full bg-white px-2.5 py-0.5 text-xs text-slate-500 hover:text-emerald-700"
+            className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-slate-400 hover:text-emerald-400"
           >
             {ej}
           </button>
         ))}
       </div>
 
-      {error && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      {error && <p className="mt-3 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
 
       {info && (
-        <pre className="mt-3 whitespace-pre-wrap rounded-lg bg-white px-3 py-2 text-sm text-slate-700">
+        <pre className="mt-3 whitespace-pre-wrap rounded-lg bg-slate-800 px-3 py-2 text-sm text-slate-200">
           {info}
         </pre>
       )}
 
       {confirmacion && (
-        <div className="mt-3 rounded-lg border border-slate-200 bg-white p-3">
-          <pre className="whitespace-pre-wrap text-sm text-slate-700">{confirmacion.resumen}</pre>
+        <div className="mt-3 rounded-lg border border-slate-700 bg-slate-800 p-3">
+          <pre className="whitespace-pre-wrap text-sm text-slate-200">{confirmacion.resumen}</pre>
           <div className="mt-3 flex gap-2">
             <Button onClick={confirmar} disabled={pending}>
               {pending ? 'Guardando…' : '✅ Confirmar'}

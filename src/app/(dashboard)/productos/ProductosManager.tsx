@@ -55,16 +55,16 @@ export function ProductosManager({ productos }: { productos: Producto[] }) {
   return (
     <>
       <div className="mb-5 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-800">Productos</h1>
+        <h1 className="text-xl font-bold text-slate-100">Productos</h1>
         <Button onClick={abrirNuevo}>+ Nuevo producto</Button>
       </div>
 
       {productos.length === 0 ? (
         <EmptyState>No hay productos cargados.</EmptyState>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-800">
           <table className="w-full text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-left text-slate-500">
+            <thead className="border-b border-slate-700 bg-slate-900 text-left text-slate-400">
               <tr>
                 <th className="px-4 py-3 font-medium">Nombre</th>
                 <th className="px-4 py-3 font-medium">Gramaje</th>
@@ -73,11 +73,11 @@ export function ProductosManager({ productos }: { productos: Producto[] }) {
                 <th className="px-4 py-3 font-medium"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-700/60">
               {productos.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-800">{p.nombre}</td>
-                  <td className="px-4 py-3 text-slate-600">{p.gramaje ? `${p.gramaje}g` : '—'}</td>
+                <tr key={p.id} className="hover:bg-slate-700/40">
+                  <td className="px-4 py-3 font-medium text-slate-100">{p.nombre}</td>
+                  <td className="px-4 py-3 text-slate-300">{p.gramaje ? `${p.gramaje}g` : '—'}</td>
                   <td className="px-4 py-3 text-right font-medium">{formatMoney(p.precio)}</td>
                   <td className="px-4 py-3">
                     {p.activo ? <Badge color="green">Activo</Badge> : <Badge>Inactivo</Badge>}
@@ -85,11 +85,11 @@ export function ProductosManager({ productos }: { productos: Producto[] }) {
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => abrirEditar(p)}
-                      className="mr-3 text-slate-500 hover:text-emerald-700"
+                      className="mr-3 text-slate-400 hover:text-emerald-400"
                     >
                       Editar
                     </button>
-                    <button onClick={() => borrar(p)} className="text-slate-500 hover:text-red-600">
+                    <button onClick={() => borrar(p)} className="text-slate-400 hover:text-red-600">
                       Eliminar
                     </button>
                   </td>
@@ -124,7 +124,7 @@ export function ProductosManager({ productos }: { productos: Producto[] }) {
               />
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm text-slate-600">
+          <label className="flex items-center gap-2 text-sm text-slate-300">
             <input
               type="checkbox"
               checked={form.activo ?? true}
@@ -132,7 +132,7 @@ export function ProductosManager({ productos }: { productos: Producto[] }) {
             />
             Activo
           </label>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-400">{error}</p>}
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               Cancelar

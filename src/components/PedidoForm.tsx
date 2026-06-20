@@ -113,10 +113,10 @@ export function PedidoForm({
           {lineas.map((l) => {
             const sub = (Number(l.cantidad) || 0) * (Number(l.precio_unitario) || 0)
             return (
-              <div key={l._key} className="rounded-lg border border-slate-200 p-2">
+              <div key={l._key} className="rounded-lg border border-slate-700 p-2">
                 <div className="flex flex-wrap items-end gap-2">
                   <div className="min-w-[140px] flex-1">
-                    <span className="text-xs text-slate-400">Producto</span>
+                    <span className="text-xs text-slate-500">Producto</span>
                     <Select
                       value={l.producto_id || ''}
                       onChange={(e) => elegirProducto(l._key, e.target.value)}
@@ -130,7 +130,7 @@ export function PedidoForm({
                     </Select>
                   </div>
                   <div className="w-20">
-                    <span className="text-xs text-slate-400">Cant.</span>
+                    <span className="text-xs text-slate-500">Cant.</span>
                     <Input
                       type="number"
                       min={0}
@@ -139,7 +139,7 @@ export function PedidoForm({
                     />
                   </div>
                   <div className="w-28">
-                    <span className="text-xs text-slate-400">Precio</span>
+                    <span className="text-xs text-slate-500">Precio</span>
                     <Input
                       type="number"
                       min={0}
@@ -148,21 +148,21 @@ export function PedidoForm({
                     />
                   </div>
                   <div className="w-24 text-right">
-                    <span className="block text-xs text-slate-400">Subtotal</span>
+                    <span className="block text-xs text-slate-500">Subtotal</span>
                     <span className="text-sm font-medium">{formatMoney(sub)}</span>
                   </div>
                   {lineas.length > 1 && (
                     <button
                       type="button"
                       onClick={() => setLineas((ls) => ls.filter((x) => x._key !== l._key))}
-                      className="px-2 text-lg text-slate-400 hover:text-red-600"
+                      className="px-2 text-lg text-slate-500 hover:text-red-600"
                     >
                       ×
                     </button>
                   )}
                 </div>
                 <input
-                  className="mt-2 w-full rounded border border-slate-200 px-2 py-1 text-xs"
+                  className="mt-2 w-full rounded border border-slate-700 px-2 py-1 text-xs"
                   placeholder="Descripción (ej: 300g)"
                   value={l.descripcion}
                   onChange={(e) => setLinea(l._key, { descripcion: e.target.value })}
@@ -174,7 +174,7 @@ export function PedidoForm({
         <button
           type="button"
           onClick={() => setLineas((ls) => [...ls, lineaVacia()])}
-          className="mt-2 text-sm font-medium text-emerald-700 hover:underline"
+          className="mt-2 text-sm font-medium text-emerald-400 hover:underline"
         >
           + Agregar item
         </button>
@@ -185,12 +185,12 @@ export function PedidoForm({
         <Textarea rows={2} value={notas} onChange={(e) => setNotas(e.target.value)} />
       </div>
 
-      <div className="flex items-center justify-between border-t border-slate-200 pt-3">
-        <span className="text-sm text-slate-500">Total</span>
-        <span className="text-lg font-bold text-slate-800">{formatMoney(total)}</span>
+      <div className="flex items-center justify-between border-t border-slate-700 pt-3">
+        <span className="text-sm text-slate-400">Total</span>
+        <span className="text-lg font-bold text-slate-100">{formatMoney(total)}</span>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
 
       <div className="flex justify-end gap-2">
         {onCancel && (
