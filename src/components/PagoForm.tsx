@@ -3,27 +3,28 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Cliente } from '@/lib/types'
-import { Button, Input, Label, Select } from '@/components/ui'
+import { Button, Field, FormActions, FormError, Input, Select } from '@/components/ui'
 import { registrarPago } from '@/app/(dashboard)/pedidos/actions'
-
-const hoy = () => new Date().toISOString().slice(0, 10)
+import { formatMoney, hoyAR } from '@/lib/format'
 
 export function PagoForm({
   clientes,
   clienteFijo,
+  saldo,
   onDone,
   onCancel,
 }: {
-  clientes: Cliente[]
+  clientes: Pick<Cliente, 'id' | 'nombre'>[]
   clienteFijo?: string
+  saldo?: number
   onDone?: () => void
   onCancel?: () => void
 }) {
   const router = useRouter()
   const [clienteId, setClienteId] = useState(clienteFijo ?? '')
-  const [fecha, setFecha] = useState(hoy())
-  const [monto, setMonto] = useState<number | ''>('')
-  const [metodo, setMetodo] = useState('')
+  const [fecha, setFecha] = useState(hoyAR)
+  const [monto, setMonto] = useState('')
+  const [metodo, setMetodo] = useState('transferencia')
   const [notas, setNotas] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
@@ -32,7 +33,7 @@ export function PagoForm({
     e.preventDefault()
     setError(null)
     if (!clienteId) return setError('Elegí un cliente.')
-    if (!monto || Number(monto) <= 0) return setError('Ingresá un monto válido.')
+    if (!(Number(monto) > 0)) return setError('Ingresá un monto mayor a cero.')
     start(async () => {
       const res = await registrarPago({
         cliente_id: clienteId,
@@ -48,60 +49,71 @@ export function PagoForm({
   }
 
   return (
-    <form onSubmit={guardar} className="space-y-3">
+    <form onSubmit={guardar} className="space-y-4">
       {!clienteFijo && (
-        <div>
-          <Label>Cliente *</Label>
-          <Select value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
-            <option value="">Elegir cliente…</option>
+        <Field label="Cliente" htmlFor="pago-cliente">
+          <Select id="pago-cliente" value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
+            <option value="">Elegir cliente</option>
             {clientes.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.nombre}
               </option>
             ))}
           </Select>
-        </div>
+        </Field>
       )}
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label>Fecha</Label>
-          <Input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
-        </div>
-        <div>
-          <Label>Monto *</Label>
+        <Field label="Monto" htmlFor="pago-monto">
           <Input
+            id="pago-monto"
             type="number"
+            inputMode="numeric"
             min={0}
+            step="any"
             value={monto}
-            onChange={(e) => setMonto(e.target.value === '' ? '' : Number(e.target.value))}
+            onChange={(e) => setMonto(e.target.value)}
             autoFocus
           />
-        </div>
+        </Field>
+        <Field label="Fecha" htmlFor="pago-fecha">
+          <Input id="pago-fecha" type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
+        </Field>
       </div>
-      <div>
-        <Label>Método</Label>
-        <Select value={metodo} onChange={(e) => setMetodo(e.target.value)}>
-          <option value="">—</option>
-          <option value="efectivo">Efectivo</option>
-          <option value="transferencia">Transferencia</option>
-          <option value="otro">Otro</option>
-        </Select>
+      {saldo !== undefined && saldo > 0 && (
+        <p className="-mt-1 text-[13px] text-ink-3">
+          Saldo pendiente {formatMoney(saldo)}.{' '}
+          <button
+            type="button"
+            onClick={() => setMonto(String(saldo))}
+            className="font-medium text-accent hover:underline"
+          >
+            Cobrar todo
+          </button>
+        </p>
+      )}
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Método" htmlFor="pago-metodo">
+          <Select id="pago-metodo" value={metodo} onChange={(e) => setMetodo(e.target.value)}>
+            <option value="transferencia">Transferencia</option>
+            <option value="efectivo">Efectivo</option>
+            <option value="otro">Otro</option>
+          </Select>
+        </Field>
+        <Field label="Nota" hint="opcional" htmlFor="pago-notas">
+          <Input id="pago-notas" value={notas} onChange={(e) => setNotas(e.target.value)} />
+        </Field>
       </div>
-      <div>
-        <Label>Notas</Label>
-        <Input value={notas} onChange={(e) => setNotas(e.target.value)} />
-      </div>
-      {error && <p className="text-sm text-red-400">{error}</p>}
-      <div className="flex justify-end gap-2 pt-1">
+      {error && <FormError>{error}</FormError>}
+      <FormActions>
         {onCancel && (
-          <Button type="button" variant="secondary" onClick={onCancel}>
+          <Button variant="ghost" onClick={onCancel}>
             Cancelar
           </Button>
         )}
         <Button type="submit" disabled={pending}>
           {pending ? 'Guardando…' : 'Registrar pago'}
         </Button>
-      </div>
+      </FormActions>
     </form>
   )
 }

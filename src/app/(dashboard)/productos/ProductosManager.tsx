@@ -1,22 +1,50 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Producto } from '@/lib/types'
-import { Button, Input, Label, Badge, EmptyState } from '@/components/ui'
+import {
+  Badge,
+  Button,
+  CanalTag,
+  EmptyState,
+  Field,
+  FormActions,
+  FormError,
+  Input,
+  PageHeader,
+  RowActions,
+  Select,
+  TableWrap,
+  Td,
+  Th,
+  rowClass,
+} from '@/components/ui'
 import { Modal } from '@/components/Modal'
-import { formatMoney } from '@/lib/format'
-import { crearProducto, editarProducto, eliminarProducto, type ProductoInput } from './actions'
+import { IconPlus } from '@/components/icons'
+import { formatMoney, formatNumber } from '@/lib/format'
+import { clasificar, nombreBolsa, ordenarClases, type Canal } from '@/lib/productos'
+import { crearProducto, editarProducto, eliminarProducto } from './actions'
 
-const vacio: ProductoInput = { nombre: '', gramaje: null, precio: 0, activo: true }
+type Form = { presentacion: string; canal: Canal; gramaje: string; precio: string; activo: boolean }
+
+const vacio: Form = { presentacion: '', canal: 'mayor', gramaje: '', precio: '', activo: true }
 
 export function ProductosManager({ productos }: { productos: Producto[] }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
-  const [form, setForm] = useState<ProductoInput>(vacio)
+  const [form, setForm] = useState<Form>(vacio)
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
+
+  const filas = useMemo(
+    () =>
+      productos
+        .map((p) => ({ ...p, ...clasificar(p.nombre) }))
+        .sort((a, b) => Number(b.activo) - Number(a.activo) || ordenarClases(a, b)),
+    [productos],
+  )
 
   function abrirNuevo() {
     setEditId(null)
@@ -25,26 +53,39 @@ export function ProductosManager({ productos }: { productos: Producto[] }) {
     setOpen(true)
   }
 
-  function abrirEditar(p: Producto) {
+  function abrirEditar(p: (typeof filas)[number]) {
     setEditId(p.id)
-    setForm({ nombre: p.nombre, gramaje: p.gramaje, precio: p.precio, activo: p.activo })
+    setForm({
+      presentacion: p.presentacion ? String(p.presentacion) : '',
+      canal: p.canal,
+      gramaje: p.gramaje ? String(p.gramaje) : '',
+      precio: String(p.precio),
+      activo: p.activo,
+    })
     setError(null)
     setOpen(true)
   }
 
   function guardar(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.nombre.trim()) return setError('El nombre es obligatorio.')
+    setError(null)
+    const data = {
+      presentacion: Number(form.presentacion),
+      canal: form.canal,
+      gramaje: form.gramaje ? Number(form.gramaje) : null,
+      precio: Number(form.precio) || 0,
+      activo: form.activo,
+    }
     start(async () => {
-      const res = editId ? await editarProducto(editId, form) : await crearProducto(form)
+      const res = editId ? await editarProducto(editId, data) : await crearProducto(data)
       if (res.error) return setError(res.error)
       setOpen(false)
       router.refresh()
     })
   }
 
-  function borrar(p: Producto) {
-    if (!confirm(`¿Eliminar "${p.nombre}"?`)) return
+  function borrar(p: (typeof filas)[number]) {
+    if (!confirm(`¿Eliminar ${nombreBolsa(p.presentacion)} ${p.canal === 'menor' ? 'por menor' : 'por mayor'}?`)) return
     start(async () => {
       const res = await eliminarProducto(p.id)
       if (res.error) alert(res.error)
@@ -54,93 +95,133 @@ export function ProductosManager({ productos }: { productos: Producto[] }) {
 
   return (
     <>
-      <div className="mb-5 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-100">Productos</h1>
-        <Button onClick={abrirNuevo}>+ Nuevo producto</Button>
-      </div>
+      <PageHeader title="Productos" meta="Lista de precios por bolsa y canal de venta">
+        <Button onClick={abrirNuevo}>
+          <IconPlus />
+          Nuevo producto
+        </Button>
+      </PageHeader>
 
-      {productos.length === 0 ? (
-        <EmptyState>No hay productos cargados.</EmptyState>
+      {filas.length === 0 ? (
+        <EmptyState title="No hay productos cargados">Agregá cada bolsa con su precio por mayor y por menor.</EmptyState>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-800">
-          <table className="w-full text-sm">
-            <thead className="border-b border-slate-700 bg-slate-900 text-left text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Nombre</th>
-                <th className="px-4 py-3 font-medium">Gramaje</th>
-                <th className="px-4 py-3 text-right font-medium">Precio</th>
-                <th className="px-4 py-3 font-medium">Estado</th>
-                <th className="px-4 py-3 font-medium"></th>
+        <TableWrap>
+          <thead>
+            <tr>
+              <Th>Bolsa</Th>
+              <Th>Canal</Th>
+              <Th num className="hidden sm:table-cell">
+                Peso
+              </Th>
+              <Th num>Precio</Th>
+              <Th className="hidden sm:table-cell">Estado</Th>
+              <Th>
+                <span className="sr-only">Acciones</span>
+              </Th>
+            </tr>
+          </thead>
+          <tbody>
+            {filas.map((p) => (
+              <tr key={p.id} className={`${rowClass} ${p.activo ? '' : 'opacity-60'}`}>
+                <Td className="font-medium text-ink">
+                  {nombreBolsa(p.presentacion)}
+                  {p.presentacion && <span className="ml-1.5 font-normal text-ink-3">hojas</span>}
+                  {!p.activo && (
+                    <span className="ml-2 sm:hidden">
+                      <Badge>Inactivo</Badge>
+                    </span>
+                  )}
+                </Td>
+                <Td>
+                  <CanalTag canal={p.canal} />
+                </Td>
+                <Td num className="hidden text-ink-3 sm:table-cell">
+                  {p.gramaje ? `${formatNumber(p.gramaje)} g` : '—'}
+                </Td>
+                <Td num className="font-medium text-ink">
+                  {formatMoney(p.precio)}
+                </Td>
+                <Td className="hidden sm:table-cell">
+                  {p.activo ? <Badge tone="accent">Activo</Badge> : <Badge>Inactivo</Badge>}
+                </Td>
+                <Td className="w-px py-2 pl-0">
+                  <RowActions
+                    que={`${nombreBolsa(p.presentacion)} ${p.canal === 'menor' ? 'por menor' : 'por mayor'}`}
+                    onEditar={() => abrirEditar(p)}
+                    onBorrar={() => borrar(p)}
+                  />
+                </Td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-700/60">
-              {productos.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-700/40">
-                  <td className="px-4 py-3 font-medium text-slate-100">{p.nombre}</td>
-                  <td className="px-4 py-3 text-slate-300">{p.gramaje ? `${p.gramaje}g` : '—'}</td>
-                  <td className="px-4 py-3 text-right font-medium">{formatMoney(p.precio)}</td>
-                  <td className="px-4 py-3">
-                    {p.activo ? <Badge color="green">Activo</Badge> : <Badge>Inactivo</Badge>}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => abrirEditar(p)}
-                      className="mr-3 text-slate-400 hover:text-emerald-400"
-                    >
-                      Editar
-                    </button>
-                    <button onClick={() => borrar(p)} className="text-slate-400 hover:text-red-600">
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </TableWrap>
       )}
 
       <Modal open={open} onClose={() => setOpen(false)} title={editId ? 'Editar producto' : 'Nuevo producto'}>
-        <form onSubmit={guardar} className="space-y-3">
-          <div>
-            <Label>Nombre *</Label>
-            <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} autoFocus />
-          </div>
+        <form onSubmit={guardar} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Gramaje (g)</Label>
+            <Field label="Bolsa de" hint="hojas" htmlFor="prod-pres">
               <Input
+                id="prod-pres"
                 type="number"
-                value={form.gramaje ?? ''}
-                onChange={(e) => setForm({ ...form, gramaje: e.target.value ? Number(e.target.value) : null })}
+                inputMode="numeric"
+                min={1}
+                step={1}
+                placeholder="300"
+                value={form.presentacion}
+                onChange={(e) => setForm({ ...form, presentacion: e.target.value })}
+                autoFocus
               />
-            </div>
-            <div>
-              <Label>Precio</Label>
+            </Field>
+            <Field label="Canal" htmlFor="prod-canal">
+              <Select
+                id="prod-canal"
+                value={form.canal}
+                onChange={(e) => setForm({ ...form, canal: e.target.value as Canal })}
+              >
+                <option value="mayor">Por mayor</option>
+                <option value="menor">Por menor</option>
+              </Select>
+            </Field>
+            <Field label="Precio" htmlFor="prod-precio">
               <Input
+                id="prod-precio"
                 type="number"
+                inputMode="numeric"
+                min={0}
                 value={form.precio}
-                onChange={(e) => setForm({ ...form, precio: Number(e.target.value) })}
+                onChange={(e) => setForm({ ...form, precio: e.target.value })}
               />
-            </div>
+            </Field>
+            <Field label="Peso" hint="gramos, opcional" htmlFor="prod-peso">
+              <Input
+                id="prod-peso"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                value={form.gramaje}
+                onChange={(e) => setForm({ ...form, gramaje: e.target.value })}
+              />
+            </Field>
           </div>
-          <label className="flex items-center gap-2 text-sm text-slate-300">
+          <label className="flex items-center gap-2.5 text-sm text-ink-2">
             <input
               type="checkbox"
-              checked={form.activo ?? true}
+              className="size-4 accent-[oklch(0.53_0.12_150)]"
+              checked={form.activo}
               onChange={(e) => setForm({ ...form, activo: e.target.checked })}
             />
-            Activo
+            Disponible para nuevos pedidos
           </label>
-          {error && <p className="text-sm text-red-400">{error}</p>}
-          <div className="flex justify-end gap-2 pt-1">
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+          {error && <FormError>{error}</FormError>}
+          <FormActions>
+            <Button variant="ghost" onClick={() => setOpen(false)}>
               Cancelar
             </Button>
             <Button type="submit" disabled={pending}>
-              {pending ? 'Guardando…' : 'Guardar'}
+              {pending ? 'Guardando…' : editId ? 'Guardar cambios' : 'Crear producto'}
             </Button>
-          </div>
+          </FormActions>
         </form>
       </Modal>
     </>

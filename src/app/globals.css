@@ -2,15 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Canales L C H (oklch) para poder usar opacidad: bg-accent/10 */
 :root {
   color-scheme: dark;
+  --bg: 0.165 0.006 160;
+  --side: 0.185 0.007 160;
+  --surface: 0.208 0.008 160;
+  --raised: 0.25 0.009 160;
+  --field: 0.175 0.006 160;
+  --line: 0.3 0.01 160;
+  --ink: 0.955 0.004 160;
+  --ink-2: 0.8 0.008 160;
+  --ink-3: 0.67 0.01 160;
+  --accent: 0.76 0.14 150;
+  --accent-strong: 0.53 0.12 150;
+  --danger: 0.72 0.16 25;
+  --warn: 0.82 0.13 80;
 }
 
 html,
 body {
-  background: #020617; /* slate-950 */
+  background: oklch(var(--bg));
 }
 
 body {
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+}
+
+@keyframes pago-nuevo {
+  from {
+    background-color: oklch(var(--accent) / 0.16);
+  }
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

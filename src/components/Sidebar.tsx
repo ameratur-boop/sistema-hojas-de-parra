@@ -2,48 +2,61 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import {
+  IconAnaliticas,
+  IconClientes,
+  IconInicio,
+  IconPedidos,
+  IconProductos,
+} from '@/components/icons'
 
 const NAV = [
-  { href: '/', label: 'Inicio', icon: '🏠' },
-  { href: '/pedidos', label: 'Pedidos', icon: '📋' },
-  { href: '/clientes', label: 'Clientes', icon: '👤' },
-  { href: '/productos', label: 'Productos', icon: '🍃' },
-  { href: '/reportes', label: 'Reportes', icon: '📊' },
+  { href: '/', label: 'Inicio', Icon: IconInicio },
+  { href: '/pedidos', label: 'Pedidos', Icon: IconPedidos },
+  { href: '/clientes', label: 'Clientes', Icon: IconClientes },
+  { href: '/productos', label: 'Productos', Icon: IconProductos },
+  { href: '/analiticas', label: 'Analíticas', Icon: IconAnaliticas },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
-
-  function isActive(href: string) {
-    if (href === '/') return pathname === '/'
-    return pathname.startsWith(href)
-  }
+  const isActive = (href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href))
 
   return (
-    <aside className="flex w-56 shrink-0 flex-col border-r border-slate-700 bg-slate-800">
-      <div className="px-5 py-5">
-        <p className="text-lg font-bold text-slate-100">Baladi</p>
-        <p className="text-xs text-slate-500">Hojas de parra</p>
+    <aside className="sticky top-0 z-20 shrink-0 border-b border-line bg-side md:h-screen md:w-56 md:border-b-0 md:border-r">
+      <div className="flex items-center gap-2.5 px-4 pt-3 md:px-5 md:pb-6 md:pt-6">
+        <span
+          aria-hidden
+          className="grid size-7 place-items-center rounded-md bg-accent-strong text-[13px] font-bold text-white"
+        >
+          B
+        </span>
+        <div className="leading-tight">
+          <p className="text-sm font-semibold text-ink">Baladi</p>
+          <p className="text-xs text-ink-3">Hojas de parra</p>
+        </div>
       </div>
-      <nav className="flex-1 space-y-1 px-3">
-        {NAV.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
-              isActive(item.href)
-                ? 'bg-emerald-500/10 text-emerald-400'
-                : 'text-slate-300 hover:bg-slate-700'
-            }`}
-          >
-            <span>{item.icon}</span>
-            {item.label}
-          </Link>
-        ))}
+      <nav
+        aria-label="Principal"
+        className="flex gap-1 overflow-x-auto px-2 py-2 [scrollbar-width:none] md:flex-col md:px-3 md:py-0"
+      >
+        {NAV.map(({ href, label, Icon }) => {
+          const active = isActive(href)
+          return (
+            <Link
+              key={href}
+              href={href}
+              aria-current={active ? 'page' : undefined}
+              className={`flex h-10 shrink-0 items-center gap-2.5 rounded-md px-3 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 md:h-9 ${
+                active ? 'bg-raised text-ink' : 'text-ink-3 hover:bg-raised/60 hover:text-ink'
+              }`}
+            >
+              <Icon className={active ? 'text-accent' : ''} />
+              {label}
+            </Link>
+          )
+        })}
       </nav>
-      <div className="border-t border-slate-700 px-5 py-4">
-        <p className="text-xs text-slate-500">Sistema Baladi</p>
-      </div>
     </aside>
   )
 }

@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { interpretar, type Operacion } from '@/lib/interpret'
-import {
-  resumenOperacion,
-  aplicarOperacion,
-  consultarMorosos,
-  consultarSaldo,
-} from '@/lib/botExec'
+import type { Operacion } from '@/lib/interpret'
+import { aplicarOperacion, consultarMorosos, NO_ENTENDI, procesarTexto } from '@/lib/botExec'
 import {
   sendMessage,
   editMessageText,
@@ -17,12 +12,13 @@ import {
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const AYUDA = `🍃 <b>Sistema Samir</b>
+const AYUDA = `<b>Baladi</b>
 Escribime en lenguaje normal, por ejemplo:
-• <i>"Agrimpay 24x300 y 24x100"</i> → carga un pedido
-• <i>"Agrimpay pagó 500 mil"</i> → registra un pago
-• <i>"quién debe"</i> → lista de morosos
-• <i>"saldo de Agrimpay"</i> → cuánto debe un cliente`
+• <i>"Sukaria 24x300 y 12x100"</i>: carga un pedido por mayor
+• <i>"Sukaria 5x300 por menor"</i>: carga un pedido por menor
+• <i>"Sukaria pagó 500 mil"</i>: registra un pago
+• <i>"quién debe"</i>: lista de deudores
+• <i>"saldo de Sukaria"</i>: cuánto debe un cliente`
 
 export async function POST(req: NextRequest) {
   // Validación del secret del webhook
@@ -77,13 +73,13 @@ export async function POST(req: NextRequest) {
 
     if (!pend) {
       await answerCallbackQuery(cq.id, 'Expiró')
-      if (chatId && messageId) await editMessageText(chatId, messageId, '⌛ Esta operación expiró.')
+      if (chatId && messageId) await editMessageText(chatId, messageId, 'Esta operación expiró.')
       return NextResponse.json({ ok: true })
     }
 
     if (accion === 'no') {
       await answerCallbackQuery(cq.id, 'Cancelado')
-      if (chatId && messageId) await editMessageText(chatId, messageId, '❌ Cancelado.')
+      if (chatId && messageId) await editMessageText(chatId, messageId, 'Cancelado.')
       return NextResponse.json({ ok: true })
     }
 
@@ -114,55 +110,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  // Interpretar con Claude
-  const [{ data: clientes }, { data: productos }] = await Promise.all([
-    admin.from('clientes').select('nombre').order('nombre'),
-    admin.from('productos').select('nombre, gramaje, precio').eq('activo', true),
-  ])
-
-  let op: Operacion
-  try {
-    op = await interpretar(text, {
-      clientes: clientes ?? [],
-      productos: productos ?? [],
-      hoy: new Date().toISOString().slice(0, 10),
-    })
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : 'desconocido'
-    await sendMessage(chatId, `❌ Error interpretando: ${msg}`)
-    return NextResponse.json({ ok: true })
-  }
-
-  if (op.tipo === 'consulta_morosos') {
-    await sendMessage(chatId, await consultarMorosos(admin))
-    return NextResponse.json({ ok: true })
-  }
-  if (op.tipo === 'consulta_saldo') {
-    await sendMessage(chatId, await consultarSaldo(admin, op.cliente_nombre))
-    return NextResponse.json({ ok: true })
-  }
-  if (
-    op.tipo === 'desconocido' ||
-    (op.tipo === 'pedido' && !op.items?.length) ||
-    (op.tipo === 'pago' && !op.monto) ||
-    (op.tipo === 'cliente' && !op.cliente_nombre)
-  ) {
-    await sendMessage(chatId, `No te entendí 🤔\n\n${AYUDA}`)
+  const r = await procesarTexto(admin, text)
+  if (r.kind !== 'confirm') {
+    await sendMessage(chatId, r.texto === NO_ENTENDI ? `No te entendí.\n\n${AYUDA}` : r.texto)
     return NextResponse.json({ ok: true })
   }
 
   // Guardar pendiente y pedir confirmación
-  const { data: pend } = await admin
+  const { data: pend, error } = await admin
     .from('telegram_pending')
-    .insert({ chat_id: chatId, payload: op })
+    .insert({ chat_id: chatId, payload: r.op })
     .select('id')
     .single()
+  if (error || !pend) {
+    await sendMessage(chatId, `No pude preparar la operación: ${error?.message ?? 'sin respuesta de la base'}`)
+    return NextResponse.json({ ok: true })
+  }
 
-  const resumen = await resumenOperacion(admin, op)
-  await sendMessage(chatId, resumen, [
+  await sendMessage(chatId, `${r.texto}\n\n¿Confirmar?`, [
     [
-      { text: '✅ Confirmar', callback_data: `ok:${pend!.id}` },
-      { text: '❌ Cancelar', callback_data: `no:${pend!.id}` },
+      { text: 'Confirmar', callback_data: `ok:${pend.id}` },
+      { text: 'Cancelar', callback_data: `no:${pend.id}` },
     ],
   ])
   return NextResponse.json({ ok: true })

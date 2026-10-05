@@ -7,7 +7,7 @@ import type { ItemNuevo } from '@/lib/types'
 function revalidarTodo(clienteId?: string) {
   revalidatePath('/')
   revalidatePath('/pedidos')
-  revalidatePath('/reportes')
+  revalidatePath('/analiticas')
   revalidatePath('/clientes')
   if (clienteId) revalidatePath(`/clientes/${clienteId}`)
 }

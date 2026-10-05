@@ -1,20 +1,24 @@
-# Sistema Samir 🍃
+# Baladi · Sistema de pedidos
 
-Gestión de pedidos, pagos y morosos para venta de hojas de parra.
+Gestión de pedidos, pagos y deudores para venta de hojas de parra.
 Reemplaza la planilla de papel (Fecha · Detalle · Total · Pagado) y suma un **bot de Telegram** para cargar todo desde el celular.
 
 ## Stack
 - Next.js 14 (App Router) + TypeScript + Tailwind
-- Supabase (Postgres + Auth)
+- Supabase (Postgres)
 - Bot de Telegram con interpretación por Claude (Anthropic)
 
 ## Funciones
-- **Morosos** (home): deudores ordenados por la deuda más antigua primero.
-- **Clientes**: ABM + cuenta corriente (pedidos, pagos y saldo).
-- **Pedidos / Pagos**: carga de ventas con items (cantidad × presentación × precio) y cobros parciales.
-- **Productos**: presentaciones y precios (300g, 100g, etc.).
-- **Reportes**: ventas/cobranzas por mes y productos más vendidos.
-- **Bot de Telegram**: "Agrimpay 24x300 y 24x100", "Agrimpay pagó 500 mil", "quién debe" → confirma y guarda.
+- **Inicio**: pulso de cobranzas en vivo (hoy, semana, mes, últimos pagos), carga rápida en texto libre y deudores ordenados por la deuda más antigua.
+- **Pedidos**: ventas por bolsa (300, 250, 100, 50 hojas) y canal (por mayor / por menor), con buscador.
+- **Clientes**: buscador, filtros por deuda y por cantidad de bolsas compradas, y cuenta corriente con saldo acumulado.
+- **Productos**: lista de precios por bolsa y canal. El nombre se arma solo para que no haya variantes duplicadas.
+- **Analíticas**: ventas y bolsas por día, semana o mes, por mayor y por menor, comparadas con el período anterior.
+- **Bot de Telegram**: "Sukaria 24x300 y 12x100", "Sukaria 5x300 por menor", "Sukaria pagó 500 mil", "quién debe".
+
+Las líneas viejas cargadas como "300g", "bolsa 300 hojas" o "BOLSAS DE 300" se agrupan como la misma bolsa al mostrarse (`src/lib/productos.ts`); la base no se modifica.
+
+Chequeo de la lógica de agrupación: `npm run check`.
 
 ---
 

@@ -1,14 +1,28 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { Cliente, Producto } from '@/lib/types'
-import { Button, Badge, EmptyState } from '@/components/ui'
+import type { ItemConProducto } from '@/lib/productos'
+import {
+  Button,
+  EmptyState,
+  PageHeader,
+  RowActions,
+  SearchInput,
+  TableWrap,
+  Td,
+  Th,
+  linkClass,
+  rowClass,
+} from '@/components/ui'
 import { Modal } from '@/components/Modal'
 import { PedidoForm } from '@/components/PedidoForm'
 import { PagoForm } from '@/components/PagoForm'
-import { formatMoney, formatDate } from '@/lib/format'
+import { ItemsResumen } from '@/components/ItemsResumen'
+import { IconPlus } from '@/components/icons'
+import { formatMoney, formatDate, formatNumber } from '@/lib/format'
 import { eliminarPedido } from './actions'
 
 export type PedidoFila = {
@@ -17,25 +31,34 @@ export type PedidoFila = {
   fecha: string
   envio: string | null
   total: number
-  created_via: string
   clientes: { nombre: string } | null
+  pedido_items: ItemConProducto[]
 }
 
 export function PedidosManager({
   pedidos,
+  total,
   clientes,
   productos,
 }: {
   pedidos: PedidoFila[]
+  total: number
   clientes: Cliente[]
   productos: Producto[]
 }) {
   const router = useRouter()
   const [modal, setModal] = useState<null | 'pedido' | 'pago'>(null)
+  const [busqueda, setBusqueda] = useState('')
   const [, start] = useTransition()
 
+  const filtrados = useMemo(() => {
+    const q = busqueda.trim().toLowerCase()
+    if (!q) return pedidos
+    return pedidos.filter((p) => (p.clientes?.nombre ?? '').toLowerCase().includes(q))
+  }, [pedidos, busqueda])
+
   function borrar(p: PedidoFila) {
-    if (!confirm('¿Eliminar este pedido?')) return
+    if (!confirm(`¿Eliminar el pedido de ${p.clientes?.nombre ?? 'este cliente'} del ${formatDate(p.fecha)} por ${formatMoney(p.total)}?`)) return
     start(async () => {
       const res = await eliminarPedido(p.id, p.cliente_id)
       if (res.error) alert(res.error)
@@ -45,59 +68,82 @@ export function PedidosManager({
 
   return (
     <>
-      <div className="mb-5 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-100">Pedidos</h1>
-        <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => setModal('pago')}>
-            Registrar pago
-          </Button>
-          <Button onClick={() => setModal('pedido')}>+ Nuevo pedido</Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Pedidos"
+        meta={
+          total > pedidos.length
+            ? `Últimos ${formatNumber(pedidos.length)} de ${formatNumber(total)}. El historial completo está en la ficha de cada cliente.`
+            : `${formatNumber(total)} pedidos`
+        }
+      >
+        <Button variant="secondary" onClick={() => setModal('pago')}>
+          Registrar pago
+        </Button>
+        <Button onClick={() => setModal('pedido')}>
+          <IconPlus />
+          Nuevo pedido
+        </Button>
+      </PageHeader>
 
       {pedidos.length === 0 ? (
-        <EmptyState>Todavía no hay pedidos cargados.</EmptyState>
+        <EmptyState title="Todavía no hay pedidos">Cargá el primero con “Nuevo pedido” o desde la carga rápida del inicio.</EmptyState>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-800">
-          <table className="w-full text-sm">
-            <thead className="border-b border-slate-700 bg-slate-900 text-left text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Fecha</th>
-                <th className="px-4 py-3 font-medium">Cliente</th>
-                <th className="px-4 py-3 font-medium">Envío</th>
-                <th className="px-4 py-3 text-right font-medium">Total</th>
-                <th className="px-4 py-3 font-medium"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-700/60">
-              {pedidos.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-700/40">
-                  <td className="px-4 py-3 text-slate-300">{formatDate(p.fecha)}</td>
-                  <td className="px-4 py-3 font-medium text-slate-100">
-                    <Link href={`/clientes/${p.cliente_id}`} className="hover:text-emerald-400">
-                      {p.clientes?.nombre ?? '—'}
-                    </Link>
-                    {p.created_via === 'telegram' && (
-                      <span className="ml-2 align-middle">
-                        <Badge color="slate">Telegram</Badge>
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-slate-400">{p.envio ?? '—'}</td>
-                  <td className="px-4 py-3 text-right font-medium">{formatMoney(p.total)}</td>
-                  <td className="px-4 py-3 text-right">
-                    <button onClick={() => borrar(p)} className="text-slate-400 hover:text-red-600">
-                      Eliminar
-                    </button>
-                  </td>
+        <>
+          <div className="mb-3">
+            <SearchInput
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar por cliente"
+              aria-label="Buscar pedidos por cliente"
+            />
+          </div>
+          {filtrados.length === 0 ? (
+            <EmptyState title={`Sin pedidos de “${busqueda}”`}>Probá con otra parte del nombre.</EmptyState>
+          ) : (
+            <TableWrap>
+              <thead>
+                <tr>
+                  <Th className="hidden sm:table-cell">Fecha</Th>
+                  <Th>Cliente</Th>
+                  <Th className="hidden sm:table-cell">Detalle</Th>
+                  <Th num>Total</Th>
+                  <Th>
+                    <span className="sr-only">Acciones</span>
+                  </Th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filtrados.map((p) => (
+                  <tr key={p.id} className={rowClass}>
+                    <Td className="hidden whitespace-nowrap text-ink-2 sm:table-cell">{formatDate(p.fecha)}</Td>
+                    <Td className="sm:min-w-36">
+                      <Link href={`/clientes/${p.cliente_id}`} className={linkClass}>
+                        {p.clientes?.nombre ?? '—'}
+                      </Link>
+                      <div className="mt-1 space-y-0.5 text-xs text-ink-3 sm:hidden">
+                        <p>{formatDate(p.fecha)}</p>
+                        <ItemsResumen items={p.pedido_items} />
+                      </div>
+                    </Td>
+                    <Td className="hidden min-w-44 sm:table-cell">
+                      <ItemsResumen items={p.pedido_items} />
+                      {p.envio && <p className="mt-0.5 text-xs text-ink-3">{p.envio}</p>}
+                    </Td>
+                    <Td num className="font-medium text-ink">
+                      {formatMoney(p.total)}
+                    </Td>
+                    <Td className="w-px py-2 pl-0">
+                      <RowActions que={`pedido de ${p.clientes?.nombre ?? 'cliente'}`} onBorrar={() => borrar(p)} />
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </TableWrap>
+          )}
+        </>
       )}
 
-      <Modal open={modal === 'pedido'} onClose={() => setModal(null)} title="Nuevo pedido">
+      <Modal open={modal === 'pedido'} onClose={() => setModal(null)} title="Nuevo pedido" size="lg">
         <PedidoForm
           clientes={clientes}
           productos={productos}
