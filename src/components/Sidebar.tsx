@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   IconAnaliticas,
   IconClientes,
+  IconGastos,
   IconInicio,
   IconPedidos,
   IconProductos,
@@ -14,6 +15,7 @@ const NAV = [
   { href: '/', label: 'Inicio', Icon: IconInicio },
   { href: '/pedidos', label: 'Pedidos', Icon: IconPedidos },
   { href: '/clientes', label: 'Clientes', Icon: IconClientes },
+  { href: '/gastos', label: 'Gastos', Icon: IconGastos },
   { href: '/productos', label: 'Productos', Icon: IconProductos },
   { href: '/analiticas', label: 'Analíticas', Icon: IconAnaliticas },
 ]

@@ -48,6 +48,7 @@ function totales(ps: Periodo[], canal: FiltroCanal) {
   let bolsas = 0
   let pedidos = 0
   let cobrado = 0
+  let gastado = 0
   for (const p of ps) {
     for (const c of canales) {
       ventas += p.monto[c]
@@ -55,16 +56,28 @@ function totales(ps: Periodo[], canal: FiltroCanal) {
     }
     pedidos += canal === 'todos' ? p.pedidos.todos : p.pedidos[canal]
     cobrado += p.cobrado
+    gastado += p.gastado
   }
-  return { ventas, bolsas, pedidos, cobrado, ticket: pedidos ? ventas / pedidos : 0 }
+  return { ventas, bolsas, pedidos, cobrado, gastado, ticket: pedidos ? ventas / pedidos : 0 }
 }
 
-function Delta({ actual, previo, anterior }: { actual: number; previo: number; anterior: string }) {
+function Delta({
+  actual,
+  previo,
+  anterior,
+  subirEsMalo = false,
+}: {
+  actual: number
+  previo: number
+  anterior: string
+  subirEsMalo?: boolean
+}) {
   if (previo <= 0) return <p className="mt-1 text-xs text-ink-3">Sin datos de {anterior}</p>
   const pct = Math.round(((actual - previo) / previo) * 100)
+  const bueno = subirEsMalo ? pct < 0 : pct > 0
   return (
     <p className="mt-1 text-xs text-ink-3">
-      <span className={pct > 0 ? 'text-accent' : pct < 0 ? 'text-danger' : ''}>
+      <span className={pct === 0 ? '' : bueno ? 'text-accent' : 'text-danger'}>
         {pct > 0 ? '+' : ''}
         {pct}%
       </span>{' '}
@@ -73,7 +86,17 @@ function Delta({ actual, previo, anterior }: { actual: number; previo: number; a
   )
 }
 
-export function AnaliticasView({ lineas, cobros, hoy }: { lineas: Linea[]; cobros: Cobro[]; hoy: string }) {
+export function AnaliticasView({
+  lineas,
+  cobros,
+  gastos,
+  hoy,
+}: {
+  lineas: Linea[]
+  cobros: Cobro[]
+  gastos: Cobro[] | null
+  hoy: string
+}) {
   const [g, setG] = useState<Granularidad>('mes')
   const [metrica, setMetrica] = useState<Metrica>('monto')
   const [canal, setCanal] = useState<FiltroCanal>('todos')
@@ -83,15 +106,18 @@ export function AnaliticasView({ lineas, cobros, hoy }: { lineas: Linea[]; cobro
     const doble = periodos(hoy, g, n * 2)
     const claves = doble.slice(n)
     return {
-      serie: resumirPorPeriodo(lineas, cobros, claves, g),
-      previa: resumirPorPeriodo(lineas, cobros, doble.slice(0, n), g),
+      serie: resumirPorPeriodo(lineas, cobros, claves, g, gastos ?? []),
+      previa: resumirPorPeriodo(lineas, cobros, doble.slice(0, n), g, gastos ?? []),
       productos: resumirPorProducto(lineas, claves, g),
     }
-  }, [lineas, cobros, hoy, g])
+  }, [lineas, cobros, gastos, hoy, g])
 
   const t = TEXTO[g]
   const actual = totales(serie, canal)
   const prev = totales(previa, canal)
+  // Cobros y gastos no se separan por canal: solo tienen sentido mirando todo.
+  const verCaja = canal === 'todos'
+  const verGastos = verCaja && gastos !== null
   const series = canal === 'todos' ? CANALES : [canal]
   const fmt = metrica === 'monto' ? formatMoney : formatNumber
   const valor = (x: PorCanal) => series.reduce((s, c) => s + x[c], 0)
@@ -168,12 +194,30 @@ export function AnaliticasView({ lineas, cobros, hoy }: { lineas: Linea[]; cobro
           <dd className="mt-1 text-xl font-semibold tabular-nums text-ink">{formatNumber(actual.pedidos)}</dd>
           <p className="mt-1 text-xs text-ink-3">Ticket promedio {formatMoney(actual.ticket)}</p>
         </div>
-        {canal === 'todos' && (
+        {verCaja && (
           <div className="min-w-[9.5rem] flex-1 bg-surface px-4 py-4">
             <dt className="text-[13px] text-ink-3">Cobrado</dt>
             <dd className="mt-1 text-xl font-semibold tabular-nums text-ink">{formatMoney(actual.cobrado)}</dd>
             <Delta actual={actual.cobrado} previo={prev.cobrado} anterior={t.anterior} />
           </div>
+        )}
+        {verGastos && (
+          <>
+            <div className="min-w-[9.5rem] flex-1 bg-surface px-4 py-4">
+              <dt className="text-[13px] text-ink-3">Gastos</dt>
+              <dd className="mt-1 text-xl font-semibold tabular-nums text-ink">{formatMoney(actual.gastado)}</dd>
+              <Delta actual={actual.gastado} previo={prev.gastado} anterior={t.anterior} subirEsMalo />
+            </div>
+            <div className="min-w-[9.5rem] flex-1 bg-surface px-4 py-4">
+              <dt className="text-[13px] text-ink-3">Resultado</dt>
+              <dd
+                className={`mt-1 text-xl font-semibold tabular-nums ${actual.ventas - actual.gastado < 0 ? 'text-danger' : 'text-accent'}`}
+              >
+                {formatMoney(actual.ventas - actual.gastado)}
+              </dd>
+              <p className="mt-1 text-xs text-ink-3">Ventas menos gastos</p>
+            </div>
+          </>
         )}
       </dl>
 
@@ -338,13 +382,20 @@ export function AnaliticasView({ lineas, cobros, hoy }: { lineas: Linea[]; cobro
               <Th num>Pedidos</Th>
               <Th num>Bolsas</Th>
               <Th num>Ventas</Th>
-              {canal === 'todos' && <Th num>Cobrado</Th>}
+              {verCaja && <Th num>Cobrado</Th>}
+              {verGastos && (
+                <>
+                  <Th num>Gastos</Th>
+                  <Th num>Resultado</Th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody>
             {[...serie].reverse().map((p, i) => {
               const tot = totales([p], canal)
-              const vacio = tot.ventas === 0 && tot.cobrado === 0
+              const vacio = tot.ventas === 0 && tot.cobrado === 0 && tot.gastado === 0
+              const neto = tot.ventas - tot.gastado
               return (
                 <tr key={p.clave} className={`${rowClass} ${vacio ? 'text-ink-3' : ''}`}>
                   <Td className="whitespace-nowrap">
@@ -360,10 +411,18 @@ export function AnaliticasView({ lineas, cobros, hoy }: { lineas: Linea[]; cobro
                   <Td num className={vacio ? '' : 'font-medium text-ink'}>
                     {tot.ventas ? formatMoney(tot.ventas) : '—'}
                   </Td>
-                  {canal === 'todos' && (
+                  {verCaja && (
                     <Td num className={tot.cobrado ? 'text-accent' : ''}>
                       {tot.cobrado ? formatMoney(tot.cobrado) : '—'}
                     </Td>
+                  )}
+                  {verGastos && (
+                    <>
+                      <Td num>{tot.gastado ? formatMoney(tot.gastado) : '—'}</Td>
+                      <Td num className={vacio ? '' : neto < 0 ? 'font-medium text-danger' : 'font-medium text-ink'}>
+                        {vacio ? '—' : formatMoney(neto)}
+                      </Td>
+                    </>
                   )}
                 </tr>
               )

@@ -40,6 +40,14 @@ export const IconClientes = (p: IconProps) => (
   </Svg>
 )
 
+export const IconGastos = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18a1 1 0 0 1 1 1v2.5" />
+    <path d="M4 7.5V18a2 2 0 0 0 2 2h13a1 1 0 0 0 1-1v-3.5M4 7.5A1 1 0 0 0 5 8.5h14a1 1 0 0 1 1 1V12" />
+    <path d="M20 12h-4a2 2 0 0 0 0 4h4z" />
+  </Svg>
+)
+
 export const IconProductos = (p: IconProps) => (
   <Svg {...p}>
     <path d="M4 7.5 12 3.5l8 4v9l-8 4-8-4z" />

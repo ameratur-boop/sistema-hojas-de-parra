@@ -6,7 +6,13 @@ import type { Operacion } from '@/lib/interpret'
 import { Button, Input } from '@/components/ui'
 import { interpretarTexto, confirmarOperacion } from '@/app/(dashboard)/quick-actions'
 
-const EJEMPLOS = ['Shawarmada 24x300 y 12x100', 'Sukaria pagó 500 mil', 'saldo de Medaura', 'quién debe']
+const EJEMPLOS = [
+  'Shawarmada 24x300 y 12x100',
+  'Sukaria pagó 500 mil',
+  'gasté 50 mil en flete',
+  'saldo de Medaura',
+  'quién debe',
+]
 
 export function QuickAdd() {
   const router = useRouter()
@@ -50,7 +56,7 @@ export function QuickAdd() {
     <section className="rounded-lg border border-line bg-surface p-4 sm:p-5">
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h2 className="text-[15px] font-semibold text-ink">Carga rápida</h2>
-        <p className="text-[13px] text-ink-3">Pedidos, pagos o consultas, escritos como en WhatsApp</p>
+        <p className="text-[13px] text-ink-3">Pedidos, pagos, gastos o consultas, escritos como en WhatsApp</p>
       </div>
 
       <form onSubmit={enviar} className="flex gap-2">

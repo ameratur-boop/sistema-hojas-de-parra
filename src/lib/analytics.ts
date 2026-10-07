@@ -21,6 +21,7 @@ export type Periodo = {
   bolsas: PorCanal
   pedidos: PorCanal & { todos: number }
   cobrado: number
+  gastado: number
 }
 
 export type FilaProducto = { presentacion: number | null; monto: PorCanal; bolsas: PorCanal }
@@ -78,6 +79,7 @@ export function resumirPorPeriodo(
   cobros: Cobro[],
   claves: string[],
   g: Granularidad,
+  gastos: Cobro[] = [],
 ): Periodo[] {
   const idx = new Map(claves.map((c, i) => [c, i]))
   const acc = claves.map((clave) => ({
@@ -86,6 +88,7 @@ export function resumirPorPeriodo(
     bolsas: cero(),
     ids: { mayor: new Set<string>(), menor: new Set<string>(), todos: new Set<string>() },
     cobrado: 0,
+    gastado: 0,
   }))
   for (const l of lineas) {
     const a = acc[idx.get(inicioPeriodo(l.fecha, g)) ?? -1]
@@ -98,6 +101,10 @@ export function resumirPorPeriodo(
   for (const c of cobros) {
     const a = acc[idx.get(inicioPeriodo(c.fecha, g)) ?? -1]
     if (a) a.cobrado += c.monto
+  }
+  for (const c of gastos) {
+    const a = acc[idx.get(inicioPeriodo(c.fecha, g)) ?? -1]
+    if (a) a.gastado += c.monto
   }
   return acc.map(({ ids, ...a }) => ({
     ...a,

@@ -19,7 +19,7 @@ export async function interpretarTexto(texto: string): Promise<QuickResult> {
 
 export async function confirmarOperacion(op: Operacion): Promise<{ mensaje: string }> {
   const mensaje = htmlAplano(await aplicarOperacion(createAdminClient(), op, 'web'))
-  for (const p of ['/', '/clientes', '/pedidos', '/analiticas']) revalidatePath(p)
+  for (const p of ['/', '/clientes', '/pedidos', '/gastos', '/analiticas']) revalidatePath(p)
   return { mensaje }
 }
 

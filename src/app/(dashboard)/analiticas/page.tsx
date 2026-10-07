@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { traerTodo } from '@/lib/supabase/paginar'
 import { clasificarItem } from '@/lib/productos'
 import { hoyAR } from '@/lib/format'
+import { traerGastos } from '@/lib/gastos'
 import type { Cobro, Linea } from '@/lib/analytics'
 import { AnaliticasView } from './AnaliticasView'
 
@@ -18,7 +19,7 @@ type ItemFila = {
 
 export default async function AnaliticasPage() {
   const supabase = createClient()
-  const [items, pagos] = await Promise.all([
+  const [items, pagos, { gastos, faltaTabla }] = await Promise.all([
     traerTodo<ItemFila>((desde, hasta) =>
       supabase
         .from('pedido_items')
@@ -30,6 +31,7 @@ export default async function AnaliticasPage() {
     traerTodo<Cobro>((desde, hasta) =>
       supabase.from('pagos').select('fecha, monto').order('id').range(desde, hasta).returns<Cobro[]>(),
     ),
+    traerGastos(supabase),
   ])
 
   const lineas: Linea[] = items.map((it) => {
@@ -48,6 +50,7 @@ export default async function AnaliticasPage() {
     <AnaliticasView
       lineas={lineas}
       cobros={pagos.map((p) => ({ fecha: p.fecha, monto: Number(p.monto) }))}
+      gastos={faltaTabla ? null : gastos.map((g) => ({ fecha: g.fecha, monto: g.monto }))}
       hoy={hoyAR()}
     />
   )

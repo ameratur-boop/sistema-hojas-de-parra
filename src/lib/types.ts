@@ -52,6 +52,17 @@ export type Pago = {
   created_at: string
 }
 
+export type Gasto = {
+  id: string
+  fecha: string
+  categoria: string
+  descripcion: string | null
+  monto: number
+  metodo: string | null
+  created_via: string
+  created_at: string
+}
+
 // Fila de la vista vw_resumen_clientes
 export type ResumenCliente = {
   cliente_id: string

@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { interpretar, type Operacion, type ProductoCtx } from './interpret'
 import { formatMoney, formatDate, hoyAR } from './format'
 import { CANAL_LABEL, clasificar, nombreBolsa } from './productos'
+import { CLAVES_CATEGORIA, esTablaFaltante, labelCategoria, type CategoriaGasto } from './gastos'
 
 type Admin = SupabaseClient
 type Cli = { id: string; nombre: string }
@@ -11,7 +12,8 @@ export type Resultado =
   | { kind: 'info'; texto: string }
   | { kind: 'error'; texto: string }
 
-export const NO_ENTENDI = 'No entendí. Probá con "Sukaria 24x300", "Sukaria pagó 500 mil" o "quién debe".'
+export const NO_ENTENDI =
+  'No entendí. Probá con "Sukaria 24x300", "Sukaria pagó 500 mil", "gasté 50 mil en flete" o "quién debe".'
 
 // Flujo común de la carga rápida web y el bot de Telegram: interpretar y decidir qué responder.
 export async function procesarTexto(admin: Admin, texto: string): Promise<Resultado> {
@@ -40,6 +42,7 @@ export async function procesarTexto(admin: Admin, texto: string): Promise<Result
     op.tipo === 'desconocido' ||
     (op.tipo === 'pedido' && !op.items?.length) ||
     (op.tipo === 'pago' && !op.monto) ||
+    (op.tipo === 'gasto' && !(op.monto && op.categoria)) ||
     (op.tipo === 'cliente' && !op.cliente_nombre)
   ) {
     return { kind: 'error', texto: NO_ENTENDI }
@@ -77,6 +80,12 @@ function totalDe(op: Operacion) {
 
 // Texto de confirmación (antes de guardar). ok=false: no hay nada para confirmar.
 export async function resumenOperacion(admin: Admin, op: Operacion): Promise<{ ok: boolean; texto: string }> {
+  if (op.tipo === 'gasto') {
+    return {
+      ok: true,
+      texto: `Gasto: <b>${labelCategoria(op.categoria ?? '')}</b>\nFecha: ${formatDate(op.fecha ?? hoyAR())}\nMonto: <b>${formatMoney(op.monto ?? 0)}</b>${op.nota ? `\nDetalle: ${op.nota}` : ''}${op.metodo ? `\nMétodo: ${op.metodo}` : ''}`,
+    }
+  }
   if (op.tipo === 'cliente') {
     return {
       ok: true,
@@ -117,6 +126,23 @@ export async function aplicarOperacion(
   op: Operacion,
   via: 'web' | 'telegram' = 'telegram',
 ): Promise<string> {
+  if (op.tipo === 'gasto') {
+    if (!(op.monto && op.monto > 0) || !CLAVES_CATEGORIA.includes(op.categoria as CategoriaGasto)) {
+      return 'Faltan el monto o la categoría del gasto.'
+    }
+    const { error } = await admin.from('gastos').insert({
+      fecha: op.fecha ?? hoyAR(),
+      categoria: op.categoria,
+      descripcion: op.nota ?? null,
+      monto: op.monto,
+      metodo: op.metodo ?? null,
+      created_via: via,
+    })
+    if (esTablaFaltante(error)) return 'La sección de gastos todavía no está activada en la base de datos.'
+    if (error) return `Error: ${error.message}`
+    return `Gasto registrado: ${formatMoney(op.monto)} en <b>${labelCategoria(op.categoria ?? '')}</b>.`
+  }
+
   if (op.tipo === 'cliente') {
     if (!op.cliente_nombre?.trim()) return 'Falta el nombre del cliente.'
     const { cliente: existente } = await resolverCliente(admin, op.cliente_nombre)

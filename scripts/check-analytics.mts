@@ -27,6 +27,9 @@ const [sem1, sem2] = resumirPorPeriodo(lineas, [{ fecha: '2026-10-05', monto: 50
 assert.deepEqual(sem1.bolsas, { mayor: 34, menor: 2 })
 assert.deepEqual(sem1.pedidos, { mayor: 1, menor: 1, todos: 2 })
 assert.equal(sem2.cobrado, 50000)
+const gastos = [{ fecha: '2026-09-28', monto: 30000 }, { fecha: '2026-10-04', monto: 5000 }, { fecha: '2026-08-01', monto: 1 }]
+const conGastos = resumirPorPeriodo(lineas, [], claves, 'semana', gastos)
+assert.deepEqual(conGastos.map((p) => p.gastado), [35000, 0])
 const prod = resumirPorProducto(lineas, claves, 'semana')
 assert.deepEqual(prod.map((p) => p.presentacion), [300, 100])
 assert.deepEqual(prod[0].bolsas, { mayor: 24, menor: 2 })

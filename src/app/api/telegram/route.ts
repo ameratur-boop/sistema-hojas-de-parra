@@ -17,6 +17,7 @@ Escribime en lenguaje normal, por ejemplo:
 • <i>"Sukaria 24x300 y 12x100"</i>: carga un pedido por mayor
 • <i>"Sukaria 5x300 por menor"</i>: carga un pedido por menor
 • <i>"Sukaria pagó 500 mil"</i>: registra un pago
+• <i>"gasté 50 mil en flete"</i>: registra un gasto
 • <i>"quién debe"</i>: lista de deudores
 • <i>"saldo de Sukaria"</i>: cuánto debe un cliente`
 

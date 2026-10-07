@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { CANAL_LABEL, clasificar } from './productos'
+import { CATEGORIAS, CLAVES_CATEGORIA } from './gastos'
 
 export type ItemOp = {
   descripcion: string
@@ -9,7 +10,8 @@ export type ItemOp = {
 }
 
 export type Operacion = {
-  tipo: 'pedido' | 'pago' | 'cliente' | 'consulta_morosos' | 'consulta_saldo' | 'desconocido'
+  tipo: 'pedido' | 'pago' | 'gasto' | 'cliente' | 'consulta_morosos' | 'consulta_saldo' | 'desconocido'
+  categoria?: string
   cliente_nombre?: string
   telefono?: string
   fecha?: string
@@ -39,9 +41,14 @@ function herramienta(productos: ProductoCtx[]): Anthropic.Tool {
       properties: {
         tipo: {
           type: 'string',
-          enum: ['pedido', 'pago', 'cliente', 'consulta_morosos', 'consulta_saldo', 'desconocido'],
+          enum: ['pedido', 'pago', 'gasto', 'cliente', 'consulta_morosos', 'consulta_saldo', 'desconocido'],
           description:
-            'pedido = carga una venta; pago = registra una cobranza; cliente = alta de un cliente nuevo; consulta_morosos = quién debe; consulta_saldo = saldo de un cliente; desconocido = no se entiende.',
+            'pedido = carga una venta; pago = un cliente paga; gasto = el negocio gasta o compra algo; cliente = alta de un cliente nuevo; consulta_morosos = quién debe; consulta_saldo = saldo de un cliente; desconocido = no se entiende.',
+        },
+        categoria: {
+          type: 'string',
+          enum: CLAVES_CATEGORIA,
+          description: 'Solo para gasto: categoría del gasto.',
         },
         cliente_nombre: {
           type: 'string',
@@ -66,9 +73,9 @@ function herramienta(productos: ProductoCtx[]): Anthropic.Tool {
             required: ['producto', 'cantidad', 'precio_unitario'],
           },
         },
-        monto: { type: 'number', description: 'Monto del pago.' },
+        monto: { type: 'number', description: 'Monto del pago o del gasto.' },
         metodo: { type: 'string', enum: ['transferencia', 'efectivo', 'otro'] },
-        nota: { type: 'string' },
+        nota: { type: 'string', description: 'Detalle breve. En un gasto: qué se pagó (ej: "flete a Córdoba").' },
       },
       required: ['tipo'],
     },
@@ -86,7 +93,7 @@ export async function interpretar(texto: string, ctx: Contexto): Promise<Operaci
     .join('\n')
   const listaClientes = ctx.clientes.map((c) => `- ${c.nombre}`).join('\n')
 
-  const system = `Sos el asistente de un sistema de ventas de hojas de parra. El vendedor te dicta pedidos y pagos en lenguaje informal argentino. Convertí el mensaje en una operación estructurada llamando a la herramienta registrar_operacion.
+  const system = `Sos el asistente de un sistema de ventas de hojas de parra. El vendedor te dicta pedidos, pagos de clientes y gastos del negocio en lenguaje informal argentino. Convertí el mensaje en una operación estructurada llamando a la herramienta registrar_operacion.
 
 Reglas:
 - Las bolsas se identifican por cantidad de hojas: 300, 250, 100 o 50. "24x300" o "24 x 300" = 24 bolsas de 300. "48 x 100 x 10000" = 48 bolsas de 100 a $10000 cada una.
@@ -94,6 +101,8 @@ Reglas:
 - Precio: el del catálogo, salvo que el mensaje indique otro.
 - Montos: "500 mil" = 500000, "1.680.000" = 1680000 (el punto separa miles).
 - Si no se menciona fecha, usá hoy (${ctx.hoy}).
+- Pago vs. gasto: si paga un cliente ("Sukaria pagó 500 mil") es tipo=pago. Si paga el negocio, en primera persona o como compra ("gasté 50 mil en flete", "pagué el alquiler", "compré 100 kg de hojas por 2 millones", "nafta 30 mil") es tipo=gasto, con la categoría que corresponda y el detalle en nota.
+- Categorías de gasto: ${CATEGORIAS.map((c) => `${c.clave} (${c.label})`).join(', ')}.
 - "nuevo cliente X", "agregar cliente X", "dar de alta a X tel 11..." => tipo=cliente (extraé nombre y, si está, teléfono).
 - "quién debe", "morosos", "deudores" => consulta_morosos.
 - "cuánto debe X", "saldo de X" => consulta_saldo.
